@@ -14,7 +14,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = localize(@"launcher.menu.select_account", nil);
+    self.title = @"Accounts";
     self.view.backgroundColor = UIColor.systemGroupedBackgroundColor;
 
     self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleInsetGrouped];

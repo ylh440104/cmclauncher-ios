@@ -17,7 +17,7 @@ static void *PLInstallProgressContext = &PLInstallProgressContext;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = localize(@"launcher.menu.install_new", nil);
+    self.title = @"Install";
     self.view.backgroundColor = UIColor.systemGroupedBackgroundColor;
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemClose target:self action:@selector(close)];
 
