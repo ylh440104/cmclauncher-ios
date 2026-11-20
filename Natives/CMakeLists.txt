@@ -155,6 +155,7 @@ add_executable(CMCLauncher
   input_bridge_v3.m
   ios_uikit_bridge.m
   utils.m
+  ui/PLTheme.m
   ui/PLRootViewController.m
   ui/PLHomeViewController.m
   ui/PLInstallViewController.m
