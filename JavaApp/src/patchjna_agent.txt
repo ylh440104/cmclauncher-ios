@@ -1,0 +1,2 @@
+Agent-Class: com.cmc.patchjna.PatchJNAAgent
+Premain-Class: com.cmc.patchjna.PatchJNAAgent

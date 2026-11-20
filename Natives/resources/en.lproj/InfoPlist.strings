@@ -1,0 +1,3 @@
+/* Localized versions of Info.plist keys */
+"CMCLauncher uses the local network to find and communicate with AltServer and LAN servers." = "CMCLauncher uses the local network to find and communicate with AltServer and LAN servers.";
+"CMCLauncher uses the microphone to enable support for voice chat mods." = "CMCLauncher uses the microphone to enable support for voice chat mods.";
