@@ -182,7 +182,8 @@
         [self.scrollView.topAnchor constraintEqualToAnchor:self.view.topAnchor],
         [self.scrollView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
         [self.scrollView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
-        [self.scrollView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor]
+        [self.scrollView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+        [self.scrollView.contentLayoutGuide.widthAnchor constraintEqualToAnchor:self.scrollView.frameLayoutGuide.widthAnchor]
     ]];
 
     self.memoryRow = [[PLSettingRow alloc] initWithIcon:@"memorychip" title:@"Memory" key:@"java.allocated_memory"];
@@ -217,9 +218,9 @@
     [self.scrollView addSubview:footer];
 
     [NSLayoutConstraint activateConstraints:@[
-        [footer.topAnchor constraintEqualToAnchor:self.scrollView.topAnchor constant:y],
-        [footer.leadingAnchor constraintEqualToAnchor:self.scrollView.leadingAnchor],
-        [footer.trailingAnchor constraintEqualToAnchor:self.scrollView.trailingAnchor],
+        [footer.topAnchor constraintEqualToAnchor:self.scrollView.contentLayoutGuide.topAnchor constant:y],
+        [footer.leadingAnchor constraintEqualToAnchor:self.scrollView.contentLayoutGuide.leadingAnchor],
+        [footer.trailingAnchor constraintEqualToAnchor:self.scrollView.contentLayoutGuide.trailingAnchor],
         [footer.heightAnchor constraintEqualToConstant:70],
         [version.centerXAnchor constraintEqualToAnchor:footer.centerXAnchor],
         [version.centerYAnchor constraintEqualToAnchor:footer.centerYAnchor],
@@ -244,11 +245,11 @@
     [self.scrollView addSubview:card];
 
     [NSLayoutConstraint activateConstraints:@[
-        [header.topAnchor constraintEqualToAnchor:self.scrollView.topAnchor constant:y],
-        [header.leadingAnchor constraintEqualToAnchor:self.scrollView.leadingAnchor constant:[PLTheme gutter] + 4],
+        [header.topAnchor constraintEqualToAnchor:self.scrollView.contentLayoutGuide.topAnchor constant:y],
+        [header.leadingAnchor constraintEqualToAnchor:self.scrollView.contentLayoutGuide.leadingAnchor constant:[PLTheme gutter] + 4],
         [card.topAnchor constraintEqualToAnchor:header.bottomAnchor constant:8],
-        [card.leadingAnchor constraintEqualToAnchor:self.scrollView.leadingAnchor constant:[PLTheme gutter]],
-        [card.trailingAnchor constraintEqualToAnchor:self.scrollView.trailingAnchor constant:-[PLTheme gutter]]
+        [card.leadingAnchor constraintEqualToAnchor:self.scrollView.contentLayoutGuide.leadingAnchor constant:[PLTheme gutter]],
+        [card.trailingAnchor constraintEqualToAnchor:self.scrollView.contentLayoutGuide.trailingAnchor constant:-[PLTheme gutter]]
     ]];
 
     UIView *previous = nil;
