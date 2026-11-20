@@ -4,7 +4,7 @@ on:
     inputs:
       boot_seconds:
         description: seconds to keep app running
-        default: "25"
+        default: "30"
 jobs:
   sim:
     runs-on: macos-latest
@@ -40,49 +40,33 @@ jobs:
           cmake --build Natives/build -j 6
 
       - name: build java
-        run: |
-          make -C JavaApp BOOTJDK="$(dirname "$(which javac)")"
+        run: make -C JavaApp BOOTJDK="$(dirname "$(which javac)")"
 
       - name: assemble
-        run: |
-          sh scripts/assemble.sh /tmp/ipa/Payload/PojavLauncher.app
+        run: sh scripts/assemble.sh /tmp/ipa/Payload/PojavLauncher.app
 
       - name: convert to simulator platform
         run: |
           python3 scripts/macho_platform.py artifacts/Payload/CMCLauncher.app 7
-          python3 scripts/macho_platform.py artifacts/Payload/CMCLauncher.app/CMCLauncher 7
 
-      - name: pick device
-        id: dev
+      - name: boot and install
         run: |
-          UDID=$(xcrun simctl list devices available -j | python3 -c "
-import json,sys
-d=json.load(sys.stdin)['devices']
-for runtime in sorted(d, reverse=True):
-    for dev in d[runtime]:
-        if 'iPhone' in dev['name']:
-            print(dev['udid'])
-            sys.exit(0)
-")
-          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
-          echo "device=$UDID"
-
-      - name: boot
-        run: |
-          xcrun simctl boot "${{ steps.dev.outputs.udid }}" || true
-          xcrun simctl bootstatus "${{ steps.dev.outputs.udid }}" -b
-          xcrun simctl install "${{ steps.dev.outputs.udid }}" artifacts/Payload/CMCLauncher.app
+          UDID=$(sh scripts/pick_device.sh)
+          echo "device $UDID"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" artifacts/Payload/CMCLauncher.app
 
       - name: launch
         run: |
-          UDID="${{ steps.dev.outputs.udid }}"
           set +e
-          xcrun simctl launch --console-pty "$UDID" com.cmc.launcher.ios > /tmp/console.log 2>&1 &
+          xcrun simctl launch --console "$SIM_UDID" com.cmc.launcher.ios > /tmp/console.log 2>&1 &
           LPID=$!
           sleep "${{ github.event.inputs.boot_seconds }}"
           kill "$LPID" 2>/dev/null
-          xcrun simctl io "$UDID" screenshot /tmp/screen.png 2>/dev/null
-          xcrun simctl spawn "$UDID" log show --last 2m --predicate 'processImagePath CONTAINS "CMCLauncher"' > /tmp/syslog.txt 2>/dev/null
+          xcrun simctl io "$SIM_UDID" screenshot /tmp/screen.png
+          xcrun simctl spawn "$SIM_UDID" log show --last 2m --predicate 'processImagePath CONTAINS "CMCLauncher"' > /tmp/syslog.txt
           echo "=== console ==="
           head -c 4000 /tmp/console.log
           echo "=== syslog tail ==="
