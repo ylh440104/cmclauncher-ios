@@ -37,8 +37,6 @@
 			<array>
 				<string>AppIcon-Light60x60</string>
 			</array>
-			<key>CFBundleIconName</key>
-			<string>AppIcon-Light</string>
 		</dict>
 	</dict>
 	<key>CFBundleIcons~ipad</key>
@@ -69,8 +67,6 @@
 				<string>AppIcon-Light60x60</string>
 				<string>AppIcon-Light76x76</string>
 			</array>
-			<key>CFBundleIconName</key>
-			<string>AppIcon-Light</string>
 		</dict>
 	</dict>
 	<key>CFBundleIdentifier</key>
