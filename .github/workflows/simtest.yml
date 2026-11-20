@@ -66,6 +66,9 @@ jobs:
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl install "$UDID" artifacts/Payload/CMCLauncher.app
+          sleep 5
+          xcrun simctl io "$UDID" screenshot /tmp/home.png
+          echo "home screenshot captured"
 
       - name: launch
         run: |
@@ -91,4 +94,5 @@ jobs:
             /tmp/latestlog.txt
             /tmp/syslog.txt
             /tmp/screen.png
+            /tmp/home.png
           if-no-files-found: warn
