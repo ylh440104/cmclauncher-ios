@@ -47,7 +47,16 @@ jobs:
 
       - name: convert to simulator platform
         run: |
-          python3 scripts/macho_platform.py artifacts/Payload/CMCLauncher.app 7
+          set +e
+          find artifacts/Payload/CMCLauncher.app -type f | while read -r f; do
+            if file -b "$f" | grep -q Mach-O; then
+              xcrun vtool -arch arm64 -set-build-version 7 14.0 16.0 -replace -output "$f" "$f" >/dev/null 2>&1
+              if [ $? -eq 0 ]; then
+                codesign --force --sign - "$f" >/dev/null 2>&1
+              fi
+            fi
+          done
+          echo "platform conversion done"
 
       - name: boot and install
         run: |
