@@ -1,0 +1,99 @@
+name: simtest
+on:
+  workflow_dispatch:
+    inputs:
+      boot_seconds:
+        description: seconds to keep app running
+        default: "25"
+jobs:
+  sim:
+    runs-on: macos-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: fetch runtime payload
+        run: |
+          curl -sSL -o /tmp/app.ipa https://github.com/PojavLauncherTeam/PojavLauncher_iOS/releases/download/v2.2/net.kdt.pojavlauncher-2.2-ios.ipa
+          mkdir -p /tmp/ipa
+          unzip -q /tmp/app.ipa -d /tmp/ipa
+          ls /tmp/ipa/Payload/PojavLauncher.app | head
+
+      - name: build native
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          cmake -B Natives/build -G Ninja \
+            -DCMAKE_SYSTEM_NAME=Darwin \
+            -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_OSX_SYSROOT="$SDK" \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_OBJC_COMPILER=clang \
+            -DCMAKE_ASM_COMPILER=clang \
+            -DCONFIG_BRANCH=main -DCONFIG_COMMIT=ci -DCONFIG_RELEASE=0 \
+            Natives
+          cmake --build Natives/build -j 6
+
+      - name: build java
+        run: |
+          make -C JavaApp BOOTJDK="$(dirname "$(which javac)")"
+
+      - name: assemble
+        run: |
+          sh scripts/assemble.sh /tmp/ipa/Payload/PojavLauncher.app
+
+      - name: convert to simulator platform
+        run: |
+          python3 scripts/macho_platform.py artifacts/Payload/CMCLauncher.app 7
+          python3 scripts/macho_platform.py artifacts/Payload/CMCLauncher.app/CMCLauncher 7
+
+      - name: pick device
+        id: dev
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+import json,sys
+d=json.load(sys.stdin)['devices']
+for runtime in sorted(d, reverse=True):
+    for dev in d[runtime]:
+        if 'iPhone' in dev['name']:
+            print(dev['udid'])
+            sys.exit(0)
+")
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "device=$UDID"
+
+      - name: boot
+        run: |
+          xcrun simctl boot "${{ steps.dev.outputs.udid }}" || true
+          xcrun simctl bootstatus "${{ steps.dev.outputs.udid }}" -b
+          xcrun simctl install "${{ steps.dev.outputs.udid }}" artifacts/Payload/CMCLauncher.app
+
+      - name: launch
+        run: |
+          UDID="${{ steps.dev.outputs.udid }}"
+          set +e
+          xcrun simctl launch --console-pty "$UDID" com.cmc.launcher.ios > /tmp/console.log 2>&1 &
+          LPID=$!
+          sleep "${{ github.event.inputs.boot_seconds }}"
+          kill "$LPID" 2>/dev/null
+          xcrun simctl io "$UDID" screenshot /tmp/screen.png 2>/dev/null
+          xcrun simctl spawn "$UDID" log show --last 2m --predicate 'processImagePath CONTAINS "CMCLauncher"' > /tmp/syslog.txt 2>/dev/null
+          echo "=== console ==="
+          head -c 4000 /tmp/console.log
+          echo "=== syslog tail ==="
+          tail -c 3000 /tmp/syslog.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simtest-output
+          path: |
+            /tmp/console.log
+            /tmp/syslog.txt
+            /tmp/screen.png
+          if-no-files-found: warn
