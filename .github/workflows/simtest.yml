@@ -70,23 +70,22 @@ jobs:
       - name: launch
         run: |
           set +e
-          xcrun simctl launch --console "$SIM_UDID" com.cmc.launcher.ios > /tmp/console.log 2>&1 &
-          LPID=$!
+          xcrun simctl launch "$SIM_UDID" com.cmc.launcher.ios
           sleep "${{ github.event.inputs.boot_seconds }}"
-          kill "$LPID" 2>/dev/null
           xcrun simctl io "$SIM_UDID" screenshot /tmp/screen.png
+          APP_CONTAINER=$(xcrun simctl get_app_container "$SIM_UDID" com.cmc.launcher.ios data)
+          cp "$APP_CONTAINER/Library/Application Support/latestlog.txt" /tmp/latestlog.txt 2>/dev/null
           xcrun simctl spawn "$SIM_UDID" log show --last 2m --predicate 'processImagePath CONTAINS "CMCLauncher"' > /tmp/syslog.txt
-          echo "=== console ==="
-          head -c 4000 /tmp/console.log
-          echo "=== syslog tail ==="
-          tail -c 3000 /tmp/syslog.txt
+          xcrun simctl terminate "$SIM_UDID" com.cmc.launcher.ios 2>/dev/null
+          echo "=== app latestlog ==="
+          head -c 4000 /tmp/latestlog.txt
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: simtest-output
           path: |
-            /tmp/console.log
+            /tmp/latestlog.txt
             /tmp/syslog.txt
             /tmp/screen.png
           if-no-files-found: warn
