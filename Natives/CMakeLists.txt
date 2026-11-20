@@ -171,10 +171,8 @@ target_link_libraries(CMCLauncher
   lzma
   "-F'${CMAKE_CURRENT_LIST_DIR}/build'"
   "-F'${CMAKE_CURRENT_LIST_DIR}/resources/Frameworks'"
-  "-framework AltKit"
   "-framework AuthenticationServices"
   "-framework AVFoundation"
-  "-framework CAltKit"
   "-framework CoreFoundation"
   "-framework CoreGraphics"
   "-framework CoreImage"
