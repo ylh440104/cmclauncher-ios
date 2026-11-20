@@ -146,6 +146,7 @@ add_executable(CMCLauncher
   PLPreferences.m
   PLProfiles.m
   PLCore.m
+  PLJavaVM.m
   SceneDelegate.m
   SceneExternalDelegate.m
   SurfaceViewController.m
