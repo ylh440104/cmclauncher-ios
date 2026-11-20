@@ -2,7 +2,7 @@ name: simprobe
 on: workflow_dispatch
 jobs:
   probe:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - name: hardware
         run: |
