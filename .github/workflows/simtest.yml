@@ -73,17 +73,20 @@ jobs:
       - name: launch
         run: |
           set +e
-          xcrun simctl launch "$SIM_UDID" com.cmc.launcher.ios
-          sleep "${{ github.event.inputs.boot_seconds }}"
-          xcrun simctl io "$SIM_UDID" screenshot /tmp/screen.png
+          for tab in 0 1 2; do
+            xcrun simctl terminate "$SIM_UDID" com.cmc.launcher.ios 2>/dev/null
+            SIMCTL_CHILD_CMC_PREVIEW_TAB=$tab xcrun simctl launch "$SIM_UDID" com.cmc.launcher.ios
+            sleep 12
+            xcrun simctl io "$SIM_UDID" screenshot "/tmp/tab$tab.png"
+          done
           APP_DATA=$(xcrun simctl get_app_container "$SIM_UDID" com.cmc.launcher.ios data 2>/dev/null)
           if [ -n "$APP_DATA" ]; then
             cp "$APP_DATA/Library/Application Support/latestlog.txt" /tmp/latestlog.txt 2>/dev/null
           fi
-          xcrun simctl spawn "$SIM_UDID" log show --last 2m --predicate 'processImagePath CONTAINS "CMCLauncher"' > /tmp/syslog.txt 2>/dev/null
+          xcrun simctl spawn "$SIM_UDID" log show --last 3m --predicate 'processImagePath CONTAINS "CMCLauncher"' > /tmp/syslog.txt 2>/dev/null
           xcrun simctl terminate "$SIM_UDID" com.cmc.launcher.ios 2>/dev/null
           echo "=== app latestlog ==="
-          head -c 4000 /tmp/latestlog.txt 2>/dev/null || echo "(no log file)"
+          head -c 2000 /tmp/latestlog.txt 2>/dev/null || echo "(no log file)"
           exit 0
 
       - uses: actions/upload-artifact@v4
@@ -93,6 +96,8 @@ jobs:
           path: |
             /tmp/latestlog.txt
             /tmp/syslog.txt
-            /tmp/screen.png
+            /tmp/tab0.png
+            /tmp/tab1.png
+            /tmp/tab2.png
             /tmp/home.png
           if-no-files-found: warn

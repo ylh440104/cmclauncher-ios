@@ -69,6 +69,17 @@
     self.tabBar.scrollEdgeAppearance = appearance;
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    const char *preview = getenv("CMC_PREVIEW_TAB");
+    if (preview) {
+        NSInteger index = atoi(preview);
+        if (index >= 0 && index < (NSInteger)self.viewControllers.count) {
+            self.selectedIndex = index;
+        }
+    }
+}
+
 - (UIStatusBarStyle)preferredStatusBarStyle {
     return UIStatusBarStyleDefault;
 }
