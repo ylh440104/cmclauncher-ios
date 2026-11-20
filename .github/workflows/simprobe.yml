@@ -1,0 +1,21 @@
+name: simprobe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: macos-14
+    steps:
+      - name: hardware
+        run: |
+          uname -m
+          sw_vers
+          xcodebuild -version
+      - name: sdks
+        run: |
+          xcrun --sdk iphonesimulator --show-sdk-path
+          xcrun --sdk iphonesimulator --show-sdk-version
+      - name: runtimes
+        run: |
+          xcrun simctl list runtimes
+      - name: devices
+        run: |
+          xcrun simctl list devices available | head -20
